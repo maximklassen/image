@@ -1,0 +1,23 @@
+{
+  "name": "maximklassen/image",
+  "description": "Framework-agnostic PHP image manipulation library with pipeline operations (GD driver) and optional Laravel bridge.",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "psr/simple-cache": "^3.0",
+    "psr/log": "^3.0"
+  },
+  "suggest": {
+    "ext-gd": "For GD image driver support",
+    "ext-exif": "For EXIF orientation auto-correction",
+    "ext-imagick": "Optional driver for extended formats (AVIF/HEIC/TIFF)"
+  },
+  "autoload": {
+    "psr-4": {
+      "MaximKlassen\\\\Image\\\\": "src/"
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}

@@ -29,6 +29,16 @@ final class Image implements ImageInterface
         return new self($new, $this->format, $this->metadata);
     }
 
+    public function withFormat(Format $format): self
+    {
+        return new self($this->gd, $format, $this->metadata);
+    }
+
+    public function withMetadata(Metadata $metadata): self
+    {
+        return new self($this->gd, $this->format, $metadata);
+    }
+
     public function toBlob(?Format $format = null, array $options = []): string
     {
         $fmt = $format ?? $this->format;
@@ -60,7 +70,6 @@ final class Image implements ImageInterface
         return (string)ob_get_clean();
     }
 
-    /** Factory: create Image from GD resource with format + metadata */
     public static function fromGd(GdImage $gd, string $mime, ?string $sourceId = null, ?array $exif = null): self
     {
         $ext = match ($mime) {

@@ -12,9 +12,11 @@ $img = $manager->readFromPath($in);
 
 $pipeline = Pipeline::from($img)
     ->autoOrient()
-    ->fit(1200, 800, 'cover', ['center','center']);
+    ->fit(1200, 800, 'cover', ['center','center'])
+    ->stripMetadata()
+    ->convert('webp');
 
 $result = $pipeline->apply($manager->getDriver());
-$manager->writeToPath($result, $out, 'webp', ['quality' => 82]);
+$manager->writeToPath($result, $out, null, ['quality' => 82]);
 
 echo "Wrote: {$out}\n";

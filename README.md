@@ -11,18 +11,6 @@ EXIF auto-orientation, crop and fit (cover/contain) are available out of the box
 - ext-gd (required)
 - ext-exif (recommended)
 
-## Install (VCS path)
-```json
-{
-  "require": {
-    "maximklassen/image": "*"
-  },
-  "repositories": [
-    { "type": "vcs", "url": "git@github.com:maximklassen/image.git" }
-  ]
-}
-```
-
 ## Quick start
 ```php
 use MaximKlassen\Image\ImageManager;
@@ -33,10 +21,13 @@ $img = $manager->readFromPath(__DIR__.'/input.jpg');
 
 $pipeline = Pipeline::from($img)
     ->autoOrient()
-    ->fit(1200, 800, mode: 'cover', position: ['center', 'center']);
+    ->fit(1200, 800, mode: 'cover', position: ['center', 'center'])
+    ->stripMetadata()
+    ->convert('webp');
 
-$result = $pipeline->apply($manager); // returns Image
-$manager->writeToPath($result, __DIR__.'/output.webp', format: 'webp', options: ['quality' => 82]);
+$result = $pipeline->apply($manager->getDriver());
+// Convert already changed the target format, so pass null:
+$manager->writeToPath($result, __DIR__.'/output.webp', null, ['quality' => 82]);
 ```
 
 ## Roadmap
@@ -45,5 +36,3 @@ $manager->writeToPath($result, __DIR__.'/output.webp', format: 'webp', options: 
 - Convert, StripMetadata
 - Imagick driver
 - Laravel bridge (Service Provider, Facade, helpers)
-```
-

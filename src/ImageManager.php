@@ -5,7 +5,6 @@ namespace MaximKlassen\Image;
 
 use MaximKlassen\Image\Contracts\DriverInterface;
 use MaximKlassen\Image\Drivers\GDDriver;
-use MaximKlassen\Image\Support\ImageUtils;
 use MaximKlassen\Image\Support\LocalFilesystem;
 use MaximKlassen\Image\Contracts\FilesystemInterface;
 use MaximKlassen\Image\Value\Format;
@@ -19,7 +18,6 @@ final class ImageManager
 
     public static function withDefaults(): self
     {
-        // For now we only ship GD. In future: detect Imagick.
         return new self(new GDDriver(), new LocalFilesystem());
     }
 

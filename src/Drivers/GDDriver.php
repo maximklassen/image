@@ -10,9 +10,6 @@ use MaximKlassen\Image\Value\Format;
 use MaximKlassen\Image\Support\ImageUtils;
 use MaximKlassen\Image\Support\Exif;
 use MaximKlassen\Image\Pipeline\Operations\OperationInterface;
-use MaximKlassen\Image\Pipeline\Operations\AutoOrient;
-use MaximKlassen\Image\Pipeline\Operations\Crop;
-use MaximKlassen\Image\Pipeline\Operations\Fit;
 
 final class GDDriver implements DriverInterface
 {
@@ -39,7 +36,7 @@ final class GDDriver implements DriverInterface
         return $op->applyWith($this, $img);
     }
 
-    // ---------- Primitive operations (used by operations) ----------
+    // ---------- Primitive operations ----------
 
     public function autoOrient(Image $img): Image
     {
@@ -49,32 +46,14 @@ final class GDDriver implements DriverInterface
         $result = $gd;
 
         switch ($orientation) {
-            case 2: // flip horizontal
-                imageflip($gd, IMG_FLIP_HORIZONTAL);
-                break;
-            case 3: // rotate 180
-                $result = imagerotate($gd, 180, 0);
-                break;
-            case 4: // flip vertical
-                imageflip($gd, IMG_FLIP_VERTICAL);
-                break;
-            case 5: // rotate 90 CW + flip horizontal
-                $result = imagerotate($gd, -90, 0);
-                imageflip($result, IMG_FLIP_HORIZONTAL);
-                break;
-            case 6: // rotate 90 CW
-                $result = imagerotate($gd, -90, 0);
-                break;
-            case 7: // rotate 90 CCW + flip horizontal
-                $result = imagerotate($gd, 90, 0);
-                imageflip($result, IMG_FLIP_HORIZONTAL);
-                break;
-            case 8: // rotate 90 CCW
-                $result = imagerotate($gd, 90, 0);
-                break;
-            case 1:
-            default:
-                return $img; // no changes
+            case 2: imageflip($gd, IMG_FLIP_HORIZONTAL); break;
+            case 3: $result = imagerotate($gd, 180, 0); break;
+            case 4: imageflip($gd, IMG_FLIP_VERTICAL); break;
+            case 5: $result = imagerotate($gd, -90, 0); imageflip($result, IMG_FLIP_HORIZONTAL); break;
+            case 6: $result = imagerotate($gd, -90, 0); break;
+            case 7: $result = imagerotate($gd, 90, 0); imageflip($result, IMG_FLIP_HORIZONTAL); break;
+            case 8: $result = imagerotate($gd, 90, 0); break;
+            default: return $img;
         }
         if (!$result instanceof GdImage) {
             throw new \RuntimeException('Failed to auto-orient image.');
@@ -92,12 +71,10 @@ final class GDDriver implements DriverInterface
         return $img->withGd($cropped);
     }
 
-    /** Resize to exact size (no aspect keep). */
     public function resize(Image $img, int $w, int $h): Image
     {
         $src = $img->getGd();
         $dst = imagecreatetruecolor($w, $h);
-        // handle alpha for PNG/WebP
         imagealphablending($dst, false);
         imagesavealpha($dst, true);
         if (!imagecopyresampled($dst, $src, 0,0,0,0, $w,$h, imagesx($src), imagesy($src))) {
@@ -106,7 +83,6 @@ final class GDDriver implements DriverInterface
         return $img->withGd($dst);
     }
 
-    /** Fit: mode 'cover' (crop to fill) or 'contain' (inside, no crop). */
     public function fit(Image $img, int $tw, int $th, string $mode = 'cover', string $hx='center', string $vy='center'): Image
     {
         $sw = $img->getWidth();
@@ -119,7 +95,6 @@ final class GDDriver implements DriverInterface
             return $this->resize($img, $nw, $nh);
         }
 
-        // cover: scale to cover and then crop center (or given position)
         $scale = max($tw / $sw, $th / $sh);
         $nw = max(1, (int)round($sw * $scale));
         $nh = max(1, (int)round($sh * $scale));

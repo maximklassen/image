@@ -39,6 +39,5 @@ final class FileCache implements CacheInterface
     {
         $path = $this->pathFor($key);
         file_put_contents($path, $blob);
-        // TTL handling left for future (cron cleanup etc.)
     }
 }

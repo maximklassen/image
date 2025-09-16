@@ -9,12 +9,17 @@ use MaximKlassen\Image\Pipeline\Operations\OperationInterface;
 use MaximKlassen\Image\Pipeline\Operations\AutoOrient;
 use MaximKlassen\Image\Pipeline\Operations\Crop;
 use MaximKlassen\Image\Pipeline\Operations\Fit;
+use MaximKlassen\Image\Pipeline\Operations\Resize;
+use MaximKlassen\Image\Pipeline\Operations\Convert;
+use MaximKlassen\Image\Pipeline\Operations\StripMetadata;
+use MaximKlassen\Image\Value\Format;
 
 final class Pipeline
 {
     /** @var OperationInterface[] */
     private array $ops = [];
-    private function __construct(private readonly Image $image) {}
+
+    private function __construct(private Image $image) {}
 
     public static function from(Image $img): self
     {
@@ -31,9 +36,7 @@ final class Pipeline
     public function autoOrient(): self
     {
         $this->ops[] = new AutoOrient();
-        return self::from($this->applyInline(new class($this->ops) {
-            public function __construct(public array &$ops) {}
-        })); // no-op, just fluent. Kept for chaining style consistency.
+        return $this;
     }
 
     public function crop(int $x, int $y, int $w, int $h): self
@@ -49,6 +52,38 @@ final class Pipeline
         return $this;
     }
 
+    public function resize(int $width, int $height): self
+    {
+        $this->ops[] = new Resize($width, $height);
+        return $this;
+    }
+
+    public function convert(string $format): self
+    {
+        $mime = str_contains($format, '/') ? $format : match (strtolower($format)) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            default => throw new \InvalidArgumentException('Unknown format: '.$format),
+        };
+        $ext = match ($mime) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+            default => 'bin',
+        };
+        $this->ops[] = new Convert(new Format($mime, $ext));
+        return $this;
+    }
+
+    public function stripMetadata(): self
+    {
+        $this->ops[] = new StripMetadata();
+        return $this;
+    }
+
     public function apply(DriverInterface $driver): Image
     {
         $img = $this->image;
@@ -56,11 +91,5 @@ final class Pipeline
             $img = $driver->apply($img, $op);
         }
         return $img;
-    }
-
-    // Internal helper to keep fluent API stable without eager apply
-    private function applyInline($dummy): Image
-    {
-        return $this->image;
     }
 }

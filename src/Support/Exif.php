@@ -11,7 +11,6 @@ final class Exif
         if (!\function_exists('exif_read_data')) {
             return null;
         }
-        // exif_read_data needs a filename/stream. We write to temp stream for safety.
         $tmp = tmpfile();
         if ($tmp === false) return null;
         $meta = stream_get_meta_data($tmp);
@@ -26,7 +25,6 @@ final class Exif
 
     public static function orientation(?array $exif): int
     {
-        // EXIF['IFD0']['Orientation'] or EXIF['Orientation']
         if (!$exif) return 1;
         $o = $exif['IFD0']['Orientation'] ?? ($exif['Orientation'] ?? 1);
         return is_numeric($o) ? (int)$o : 1;
